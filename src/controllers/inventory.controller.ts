@@ -1,3 +1,4 @@
+// InventoryController.ts
 import { Request, Response } from 'express';
 import { InventoryService } from '../services/inventory.service';
 import { InventoryDTO } from '../types/inventory.type';
@@ -14,10 +15,33 @@ export class InventoryController {
     }
   }
 
-  async getBatchDetails(req: Request, res: Response): Promise<void> {
-    const { produkId } = req.params; // Changed to match service and model
+
+
+  async getAllBatches(req: Request, res: Response): Promise<void> {
     try {
-      const batchDetails = await this.inventoryService.getBatchDetails(produkId);
+      const batches = await this.inventoryService.getAllBatches();
+      res.status(200).json(batches);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to retrieve all batches', error: String(error) });
+    }
+  }
+
+
+  async getInventoryDetail(req: Request, res: Response): Promise<void> {
+    const { produkId } = req.params; // Expect produkId as a route parameter
+    try {
+      const inventoryDetail = await this.inventoryService.getInventoryDetail(produkId);
+      res.status(200).json(inventoryDetail);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to retrieve inventory details', error: String(error) });
+    }
+  }
+  
+
+  async getBatchDetails(req: Request, res: Response): Promise<void> {
+    const { batchId } = req.params; // Use batchId instead of produkId
+    try {
+      const batchDetails = await this.inventoryService.getBatchDetails(batchId);
       res.status(200).json(batchDetails);
     } catch (error) {
       res.status(500).json({ message: 'Failed to retrieve batch details', error: String(error) });
@@ -35,10 +59,10 @@ export class InventoryController {
   }
 
   async updateBatch(req: Request, res: Response): Promise<void> {
-    const { produkId } = req.params; // Changed to match service and model
+    const { batchId } = req.params; // Use batchId instead of produkId
     const batchData: Partial<InventoryDTO> = req.body;
     try {
-      const updatedBatch = await this.inventoryService.updateBatch(produkId, batchData);
+      const updatedBatch = await this.inventoryService.updateBatch(batchId, batchData);
       res.status(200).json(updatedBatch);
     } catch (error) {
       res.status(500).json({ message: 'Failed to update batch', error: String(error) });
@@ -46,9 +70,9 @@ export class InventoryController {
   }
 
   async deleteBatch(req: Request, res: Response): Promise<void> {
-    const { produkId } = req.params; // Changed to match service and model
+    const { batchId } = req.params; // Use batchId instead of produkId
     try {
-      await this.inventoryService.deleteBatch(produkId);
+      await this.inventoryService.deleteBatch(batchId);
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: 'Failed to delete batch', error: String(error) });

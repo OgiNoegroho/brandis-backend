@@ -8,19 +8,30 @@ export class InventoryService {
     return this.inventoryModel.getInventory();
   }
 
-  getBatchDetails(produkId: string) { // Changed to match controller and model
-    return this.inventoryModel.getBatchDetails(produkId);
+  
+  getAllBatches() {
+    return this.inventoryModel.getAllBatches();
+  }
+
+  getInventoryDetail(produkId: string) {
+    return this.inventoryModel.getInventoryDetail(produkId);
+  }
+  
+
+
+  getBatchDetails(batchId: string) { // Changed to batchId
+    return this.inventoryModel.getBatchDetails(batchId);
   }
 
   createBatch(batchData: InventoryDTO) {
     return this.inventoryModel.createBatch(batchData);
   }
 
-  updateBatch(produkId: string, batchData: Partial<InventoryDTO>) { // Changed to match controller and model
-    return this.inventoryModel.updateBatch(produkId, batchData);
+  updateBatch(batchId: string, batchData: Partial<InventoryDTO>) { // Changed to batchId
+    return this.inventoryModel.updateBatch(batchId, batchData);
   }
 
-  deleteBatch(produkId: string) { // Changed to match controller and model
-    return this.inventoryModel.deleteBatch(produkId);
+  deleteBatch(batchId: string) { // Changed to batchId
+    return this.inventoryModel.deleteBatch(batchId);
   }
 }

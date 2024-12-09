@@ -23,7 +23,10 @@ export const dbConfig = {
   password: password,
   database: database,
   port: port,
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: 30000, // Increased timeout duration
+  idleTimeoutMillis: 300000, // Idle timeout for connections
+  max: 10, // Max connections in pool
+  min: 2, // Min connections in pool
 };
 
 export const createDbConnection = async (): Promise<Pool> => {
@@ -38,5 +41,14 @@ export const createDbConnection = async (): Promise<Pool> => {
     throw err;
   }
 
+  // Gracefully shutdown by closing the connection pool on process termination
+  process.on('SIGINT', async () => {
+    console.log('Shutting down, closing database connection...');
+    await pool.end(); // Close all connections in the pool
+    console.log('Database connection closed');
+    process.exit(0);
+  });
+
   return pool;
 };
+

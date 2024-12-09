@@ -10,7 +10,6 @@ import { userRoutes } from './routes/user.route';
 import { productRoutes } from './routes/product.route';
 import { inventoryRoutes } from './routes/inventory.route';
 
-
 const app = express();
 const port = process.env.PORT || 3008;
 
@@ -27,24 +26,34 @@ app.use(cors({
 
 let dbPool: Pool;
 
-// Database connection function
+// Retry mechanism for database connection
 const createDbConnection = async (): Promise<Pool> => {
-  const pool = new Pool({
-    ...dbConfig, // PostgreSQL configuration (from environment)
-    max: 10, // Connection pool size
-    idleTimeoutMillis: 30000, // Connection idle timeout
-    connectionTimeoutMillis: 2000, // Connection timeout
-  });
+  const pool = new Pool(dbConfig);
 
-  try {
-    const client = await pool.connect();
-    console.log('Database connection established');
-    client.release(); // Release the connection back to the pool
-    return pool;
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    throw error;
+  let attempts = 0;
+  const maxAttempts = 5;
+  const delay = 500; // Delay between retries in ms
+
+  while (attempts < maxAttempts) {
+    try {
+      const client = await pool.connect();
+      console.log('Database connection established');
+      client.release(); // Release the connection back to the pool
+      return pool;
+    } catch (error) {
+      console.error(`Database connection attempt ${attempts + 1} failed:`, error);
+      attempts += 1;
+      if (attempts < maxAttempts) {
+        console.log(`Retrying in ${delay / 1000} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        console.error('Maximum connection attempts reached');
+        throw error; // After max attempts, throw the error
+      }
+    }
   }
+
+  return pool;
 };
 
 // Error handling middleware
@@ -67,7 +76,7 @@ const notFoundHandler = (req: express.Request, res: express.Response) => {
 // Initialize server
 const initializeServer = async () => {
   try {
-    dbPool = await createDbConnection();
+    dbPool = await createDbConnection(); // Initialize the database connection with retry logic
 
     // Base route
     app.get('/', (req, res) => {
